@@ -11,7 +11,7 @@
         /* --- CORE STYLES --- */
         body {
             font-family: 'Nunito', sans-serif;
-            overflow: hidden; /* Prevents body scroll, we scroll inside the card */
+            overflow: hidden; /* We handle scrolling inside the card */
             touch-action: none;
         }
         
@@ -34,19 +34,21 @@
 
         /* Glassmorphism Card Style */
         .glass-card {
-            background: rgba(255, 255, 255, 0.75);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.9);
             box-shadow: 0 10px 40px 0 rgba(31, 38, 135, 0.2);
-            z-index: 10; /* Keep above falling stickers */
+            z-index: 10;
         }
 
         /* --- SCROLLBAR STYLING --- */
         .custom-scroll {
             overflow-y: auto;
+            scroll-behavior: smooth;
             scrollbar-width: thin;
             scrollbar-color: #f472b6 rgba(255,255,255,0.5);
+            padding-right: 10px;
         }
         .custom-scroll::-webkit-scrollbar {
             width: 6px;
@@ -144,7 +146,7 @@
             top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
             overflow: hidden;
-            z-index: 1; /* Behind the glass card */
+            z-index: 5; 
         }
         .sticker {
             position: absolute;
@@ -152,6 +154,7 @@
             font-size: 2rem;
             opacity: 0.8;
             animation: fallDown linear forwards;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
         @keyframes fallDown {
             0% { transform: translateY(-50px) rotate(0deg) translateX(0); opacity: 0; }
@@ -204,9 +207,7 @@
 </head>
 <body class="text-gray-800">
 
-    <!-- ========================================================================= -->
-    <!-- 🎵 MUSIC 🎵 -->
-    <!-- ========================================================================= -->
+    <!-- 🎵 MUSIC: Replace with your actual file name 🎵 -->
     <audio id="bgMusic" loop>
         <source src="Ben&Ben - Paninindigan Kita  Official Lyric Video.mp3" type="audio/mp3"> 
     </audio>
@@ -216,7 +217,7 @@
     <!-- Sticker Container for Falling Effects -->
     <div id="stickerContainer" class="sticker-container"></div>
 
-    <!-- === PAGE 1: THE QUESTION === -->
+    <!-- === PAGE 1: THE LATE QUESTION === -->
     <div id="page1" class="page page-active flex flex-col items-center justify-center p-4">
         
         <div class="glass-card p-8 rounded-3xl flex flex-col items-center max-w-md w-full relative transition-all duration-300">
@@ -226,9 +227,14 @@
                      alt="Cute Bear" class="w-48 h-48 object-cover">
             </div>
 
-            <h1 class="text-4xl md:text-5xl romantic-font text-pink-600 mb-8 text-center drop-shadow-sm select-none">
-                Will you be my Valentine?
+            <!-- Late/Fluttering Text -->
+            <h1 class="text-3xl md:text-4xl romantic-font text-pink-600 mb-2 text-center drop-shadow-sm select-none leading-relaxed">
+                I know I'm a little late... 🐢
             </h1>
+            <h2 class="text-2xl md:text-3xl romantic-font text-gray-600 mb-8 text-center drop-shadow-sm select-none">
+                But my heart beats on time for you.<br>
+                <span class="text-pink-500 mt-2 block">Will you still be my Valentine?</span>
+            </h2>
 
             <div id="interactionContainer" class="relative w-full h-24 flex justify-center items-center">
                 <button id="yesBtn" class="bg-gradient-to-r from-green-400 to-green-600 text-white font-bold py-3 px-10 rounded-full shadow-xl z-20 hover:scale-110 hover:shadow-2xl transition-all duration-300 text-xl tracking-wide border-2 border-white/30">
@@ -241,7 +247,7 @@
             </div>
 
             <p class="mt-6 text-sm text-gray-500 font-semibold opacity-70 select-none">
-                (Please don't say no...)
+                (Better late than never... right?)
             </p>
         </div>
     </div>
@@ -270,13 +276,13 @@
         </div>
 
         <h1 class="text-4xl md:text-5xl romantic-font text-pink-600 mb-4 animate-bounce drop-shadow-md text-center">
-            Yay! I knew it! 💖
+            You made my heart smile! 💖
         </h1>
 
         <!-- SCROLLABLE MESSAGE CARD -->
-        <div class="glass-card p-6 rounded-2xl w-full max-w-lg border-t-4 border-pink-400 shadow-2xl flex flex-col" style="max-height: 55vh;">
-            <div id="scrollContainer" class="custom-scroll pr-2">
-                <p id="typewriter" class="text-md md:text-lg text-gray-800 font-semibold leading-relaxed whitespace-pre-wrap">
+        <div class="glass-card p-6 rounded-2xl w-full max-w-lg border-t-4 border-pink-400 shadow-2xl flex flex-col relative" style="height: 60vh;">
+            <div id="scrollContainer" class="custom-scroll h-full">
+                <p id="typewriter" class="text-md md:text-lg text-gray-800 font-semibold leading-relaxed whitespace-pre-wrap pb-10">
                     <!-- Text appears here -->
                 </p>
             </div>
@@ -285,7 +291,10 @@
     </div>
 
     <script>
+        // --- CONFIG ---
         const CLICK_LIMIT = 5; 
+
+        // --- ELEMENTS ---
         const noBtn = document.getElementById('noBtn');
         const yesBtn = document.getElementById('yesBtn');
         const bear = document.getElementById('bear');
@@ -293,12 +302,14 @@
         const page2 = document.getElementById('page2');
         const bgMusic = document.getElementById('bgMusic');
         const scrollContainer = document.getElementById('scrollContainer');
+        const typeEl = document.getElementById('typewriter');
+        
         let clickCount = 0;
 
-        // Initial setup
+        // Initial setup for "No" button
         noBtn.style.transform = 'translate(85px, 0)';
 
-        // "No" Button Logic
+        // 1. "No" Button Evasion
         function evadeUser() {
             if (clickCount >= CLICK_LIMIT) return;
             const x = (Math.random() * 160) - 80;
@@ -333,7 +344,7 @@
         noBtn.addEventListener('click', (e) => { e.preventDefault(); evadeUser(); });
         noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); evadeUser(); });
 
-        // "Yes" Button Logic
+        // 2. "Yes" Button & Transitions
         yesBtn.addEventListener('click', () => {
             bgMusic.volume = 0.6; 
             bgMusic.play().catch(e => console.log("Audio play failed (check file path)", e));
@@ -349,7 +360,7 @@
                     page2.classList.remove('page-hidden');
                     page2.classList.add('page-active');
                     playCelebration();
-                    startFallingStickers(); // Start the falling effects
+                    startFallingStickers(); 
                 });
             }, 1000);
         });
@@ -369,6 +380,7 @@
             setTimeout(() => {
                 core.classList.add('animate-core');
                 fireConfetti();
+                // Start typing after flower blooms
                 setTimeout(() => { startTypewriter(); }, 1000); 
             }, 2500);
         }
@@ -383,31 +395,31 @@
             }());
         }
 
-        // --- FALLING STICKERS LOGIC ---
+        // 3. Falling Stickers (Dancing Melody)
         function startFallingStickers() {
             const stickerContainer = document.getElementById('stickerContainer');
-            // Mix of Hearts, Bears, Flowers, and Musical Notes
-            const stickerIcons = ['❤️', '💖', '🧸', '🌸', '🎵', '🎶', '🎻', '🎹', '🎼'];
+            // Hearts, Bears, and Music Notes
+            const stickerIcons = ['❤️', '💖', '🧸', '🌸', '🎵', '🎶', '🎼', '🎹'];
             
             setInterval(() => {
                 const el = document.createElement('div');
                 el.classList.add('sticker');
                 el.innerText = stickerIcons[Math.floor(Math.random() * stickerIcons.length)];
                 
-                // Random positioning and timing
+                // Random positioning
                 el.style.left = Math.random() * 100 + 'vw';
-                const duration = Math.random() * 5 + 3; // 3 to 8 seconds
+                const duration = Math.random() * 5 + 4; // 4 to 9 seconds
                 el.style.animationDuration = duration + 's';
-                el.style.fontSize = (Math.random() * 1.5 + 1) + 'rem'; // Random size
+                el.style.fontSize = (Math.random() * 1.5 + 1.2) + 'rem'; 
                 
                 stickerContainer.appendChild(el);
 
                 // Cleanup
                 setTimeout(() => { el.remove(); }, duration * 1000);
-            }, 400); // New sticker every 400ms
+            }, 350); 
         }
 
-        // --- TYPEWRITER LOGIC ---
+        // 4. Typewriter Logic with SMART Auto-Scroll
         const message = `To My Dearest Wifeyy Michi,
 
 Happy Valentine’s Day, My Love.
@@ -439,20 +451,23 @@ I love you so much, Wifeyy. Happy Valentine’s Day!
 Always yours,
 Hubby Sevyyy`;
 
-        const typeEl = document.getElementById('typewriter');
         let typeIndex = 0;
 
         function startTypewriter() {
             if (typeIndex < message.length) {
-                // Handle newlines explicitly for safer rendering
-                const char = message.charAt(typeIndex);
-                typeEl.textContent += char; 
-                typeIndex++;
-                
-                // Auto scroll to bottom as we type
-                scrollContainer.scrollTop = scrollContainer.scrollHeight;
+                // 1. CHECK IF USER IS AT BOTTOM (Before adding text)
+                // We use a buffer of 50px to account for padding/margins
+                const isAtBottom = (scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight) < 50;
 
-                // Speed up typing for long text (20ms instead of 40)
+                // 2. ADD CHARACTER
+                typeEl.textContent += message.charAt(typeIndex);
+                typeIndex++;
+
+                // 3. ONLY AUTO-SCROLL IF USER WAS ALREADY AT THE BOTTOM
+                if (isAtBottom) {
+                    scrollContainer.scrollTop = scrollContainer.scrollHeight;
+                }
+
                 setTimeout(startTypewriter, 20); 
             }
         }
