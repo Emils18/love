@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For Wifeyy Michi ❤️</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- CORE STYLES --- */
+        body {
+            font-family: 'Nunito', sans-serif;
+            overflow: hidden; /* Prevents body scroll, we scroll inside the card */
+            touch-action: none;
+        }
+        
+        /* Dynamic Background Gradient */
+        .bg-gradient-anim {
+            background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #ffd1ff, #fbc2eb);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .romantic-font { font-family: 'Dancing Script', cursive; }
+
+        /* Glassmorphism Card Style */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 40px 0 rgba(31, 38, 135, 0.2);
+            z-index: 10; /* Keep above falling stickers */
+        }
+
+        /* --- SCROLLBAR STYLING --- */
+        .custom-scroll {
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #f472b6 rgba(255,255,255,0.5);
+        }
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.5);
+            border-radius: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background-color: #f472b6;
+            border-radius: 8px;
+        }
+
+        /* --- FLOWER ANIMATION --- */
+        .flower-stage {
+            position: relative;
+            width: 150px;
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            margin-bottom: 10px;
+            z-index: 20;
+        }
+
+        .stem {
+            width: 8px;
+            height: 0;
+            background: linear-gradient(to right, #166534, #22c55e);
+            border-radius: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .leaf {
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            background: #22c55e;
+            border-radius: 0 50% 0 50%;
+            z-index: 0;
+            opacity: 0;
+        }
+        .leaf.left { bottom: 60px; left: -30px; transform: rotate(-45deg) scale(0); }
+        .leaf.right { bottom: 90px; right: -30px; transform: rotate(45deg) scale(0); }
+
+        .flower-center-group {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 0;
+            z-index: 2;
+        }
+
+        .petal {
+            position: absolute;
+            width: 40px;
+            height: 80px;
+            background: linear-gradient(to bottom, #ff1493, #ff69b4);
+            border-radius: 50px;
+            bottom: 0;
+            left: -20px;
+            transform-origin: bottom center;
+            transform: rotate(var(--r)) scale(0);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .core {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #facc15;
+            border-radius: 50%;
+            top: -15px;
+            left: -15px;
+            transform: scale(0);
+            z-index: 10;
+        }
+
+        /* Animation Classes */
+        .animate-stem { animation: growStem 1.5s ease-out forwards; }
+        .animate-leaf { animation: popLeaf 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-petal { animation: bloomPetal 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        .animate-core { animation: popCore 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        @keyframes growStem { 100% { height: 160px; } }
+        @keyframes popLeaf { 100% { opacity: 1; transform: rotate(var(--rot)) scale(1); } }
+        @keyframes bloomPetal { 100% { transform: rotate(var(--r)) scale(1); } }
+        @keyframes popCore { 100% { transform: scale(1); } }
+
+        /* --- FALLING STICKERS ANIMATION --- */
+        .sticker-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1; /* Behind the glass card */
+        }
+        .sticker {
+            position: absolute;
+            top: -50px;
+            font-size: 2rem;
+            opacity: 0.8;
+            animation: fallDown linear forwards;
+        }
+        @keyframes fallDown {
+            0% { transform: translateY(-50px) rotate(0deg) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            50% { transform: translateY(50vh) rotate(180deg) translateX(20px); }
+            100% { transform: translateY(110vh) rotate(360deg) translateX(-20px); opacity: 0; }
+        }
+
+        /* --- PAGE TRANSITION --- */
+        .page {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .page-hidden {
+            opacity: 0;
+            transform: scale(1.5);
+            pointer-events: none;
+            filter: blur(10px);
+        }
+        .page-active {
+            opacity: 1;
+            transform: scale(1);
+            filter: blur(0);
+        }
+
+        /* --- BEAR ANIMATION --- */
+        .bear-popup {
+            position: absolute;
+            font-size: 3.5rem;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            white-space: nowrap;
+        }
+        .angry-shake { animation: shake 0.4s infinite; }
+        @keyframes shake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(-3px, 0) rotate(-5deg); }
+            75% { transform: translate(3px, 0) rotate(5deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- ========================================================================= -->
+    <!-- 🎵 MUSIC 🎵 -->
+    <!-- ========================================================================= -->
+    <audio id="bgMusic" loop>
+        <source src="Ben&Ben - Paninindigan Kita  Official Lyric Video.mp3" type="audio/mp3"> 
+    </audio>
+
+    <div class="bg-gradient-anim"></div>
+    
+    <!-- Sticker Container for Falling Effects -->
+    <div id="stickerContainer" class="sticker-container"></div>
+
+    <!-- === PAGE 1: THE QUESTION === -->
+    <div id="page1" class="page page-active flex flex-col items-center justify-center p-4">
+        
+        <div class="glass-card p-8 rounded-3xl flex flex-col items-center max-w-md w-full relative transition-all duration-300">
+            
+            <div class="mb-6 rounded-2xl overflow-hidden shadow-lg border-4 border-white/50 rotate-2 hover:rotate-0 transition duration-300 bg-white">
+                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3h5c3h5M3h5c3h5M3h5c3h5M3h5c3h5M3h5c3h5/26FLdmIp6wJr91JAI/giphy.gif" 
+                     alt="Cute Bear" class="w-48 h-48 object-cover">
+            </div>
+
+            <h1 class="text-4xl md:text-5xl romantic-font text-pink-600 mb-8 text-center drop-shadow-sm select-none">
+                Will you be my Valentine?
+            </h1>
+
+            <div id="interactionContainer" class="relative w-full h-24 flex justify-center items-center">
+                <button id="yesBtn" class="bg-gradient-to-r from-green-400 to-green-600 text-white font-bold py-3 px-10 rounded-full shadow-xl z-20 hover:scale-110 hover:shadow-2xl transition-all duration-300 text-xl tracking-wide border-2 border-white/30">
+                    YES ❤️
+                </button>
+                <button id="noBtn" class="bg-gradient-to-r from-rose-400 to-rose-600 text-white font-bold py-3 px-10 rounded-full shadow-xl z-30 absolute transition-all duration-200 text-xl tracking-wide border-2 border-white/30">
+                    No
+                </button>
+                <div id="bear" class="bear-popup">🐻</div>
+            </div>
+
+            <p class="mt-6 text-sm text-gray-500 font-semibold opacity-70 select-none">
+                (Please don't say no...)
+            </p>
+        </div>
+    </div>
+
+    <!-- === PAGE 2: THE CELEBRATION === -->
+    <div id="page2" class="page page-hidden flex flex-col items-center justify-center p-4">
+        
+        <!-- Flower -->
+        <div class="flower-stage">
+            <div id="stem" class="stem">
+                <div class="leaf left" style="--rot: -45deg"></div>
+                <div class="leaf right" style="--rot: 45deg"></div>
+                <div class="flower-center-group">
+                    <!-- Petals -->
+                    <div class="petal" style="--r: 0deg"></div>
+                    <div class="petal" style="--r: 45deg"></div>
+                    <div class="petal" style="--r: 90deg"></div>
+                    <div class="petal" style="--r: 135deg"></div>
+                    <div class="petal" style="--r: 180deg"></div>
+                    <div class="petal" style="--r: 225deg"></div>
+                    <div class="petal" style="--r: 270deg"></div>
+                    <div class="petal" style="--r: 315deg"></div>
+                    <div class="core"></div>
+                </div>
+            </div>
+        </div>
+
+        <h1 class="text-4xl md:text-5xl romantic-font text-pink-600 mb-4 animate-bounce drop-shadow-md text-center">
+            Yay! I knew it! 💖
+        </h1>
+
+        <!-- SCROLLABLE MESSAGE CARD -->
+        <div class="glass-card p-6 rounded-2xl w-full max-w-lg border-t-4 border-pink-400 shadow-2xl flex flex-col" style="max-height: 55vh;">
+            <div id="scrollContainer" class="custom-scroll pr-2">
+                <p id="typewriter" class="text-md md:text-lg text-gray-800 font-semibold leading-relaxed whitespace-pre-wrap">
+                    <!-- Text appears here -->
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const CLICK_LIMIT = 5; 
+        const noBtn = document.getElementById('noBtn');
+        const yesBtn = document.getElementById('yesBtn');
+        const bear = document.getElementById('bear');
+        const page1 = document.getElementById('page1');
+        const page2 = document.getElementById('page2');
+        const bgMusic = document.getElementById('bgMusic');
+        const scrollContainer = document.getElementById('scrollContainer');
+        let clickCount = 0;
+
+        // Initial setup
+        noBtn.style.transform = 'translate(85px, 0)';
+
+        // "No" Button Logic
+        function evadeUser() {
+            if (clickCount >= CLICK_LIMIT) return;
+            const x = (Math.random() * 160) - 80;
+            const y = (Math.random() * 100) - 50;
+            noBtn.style.transform = `translate(${x}px, ${y}px)`;
+            clickCount++;
+            if (clickCount === CLICK_LIMIT) triggerAngryBear();
+        }
+
+        function triggerAngryBear() {
+            const currentTransform = noBtn.style.transform;
+            noBtn.style.opacity = '0';
+            noBtn.style.pointerEvents = 'none';
+            bear.style.transform = currentTransform;
+            bear.style.opacity = '1';
+
+            setTimeout(() => {
+                bear.innerText = "😠"; 
+                setTimeout(() => {
+                    bear.style.transform = 'translate(-130px, 0)';
+                    setTimeout(() => {
+                        bear.innerText = "👉😠"; 
+                        bear.classList.add('angry-shake');
+                        yesBtn.classList.add('animate-pulse', 'ring-4', 'ring-pink-300', 'scale-110');
+                        yesBtn.innerText = "CLICK ME! ❤️";
+                    }, 500);
+                }, 500);
+            }, 300);
+        }
+
+        noBtn.addEventListener('mouseover', evadeUser);
+        noBtn.addEventListener('click', (e) => { e.preventDefault(); evadeUser(); });
+        noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); evadeUser(); });
+
+        // "Yes" Button Logic
+        yesBtn.addEventListener('click', () => {
+            bgMusic.volume = 0.6; 
+            bgMusic.play().catch(e => console.log("Audio play failed (check file path)", e));
+
+            page1.classList.remove('page-active');
+            page1.classList.add('page-hidden');
+            
+            setTimeout(() => {
+                page1.style.display = 'none';
+                page2.style.display = 'flex';
+                
+                requestAnimationFrame(() => {
+                    page2.classList.remove('page-hidden');
+                    page2.classList.add('page-active');
+                    playCelebration();
+                    startFallingStickers(); // Start the falling effects
+                });
+            }, 1000);
+        });
+
+        function playCelebration() {
+            const stem = document.getElementById('stem');
+            const leaves = document.querySelectorAll('.leaf');
+            const petals = document.querySelectorAll('.petal');
+            const core = document.querySelector('.core');
+
+            stem.classList.add('animate-stem');
+            setTimeout(() => { leaves.forEach(l => l.classList.add('animate-leaf')); }, 1200);
+            petals.forEach((p, i) => {
+                setTimeout(() => { p.classList.add('animate-petal'); }, 1500 + (i * 100));
+            });
+
+            setTimeout(() => {
+                core.classList.add('animate-core');
+                fireConfetti();
+                setTimeout(() => { startTypewriter(); }, 1000); 
+            }, 2500);
+        }
+
+        function fireConfetti() {
+            const end = Date.now() + 3000;
+            const colors = ['#ff1493', '#ff69b4', '#ffffff'];
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: colors });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: colors });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }
+
+        // --- FALLING STICKERS LOGIC ---
+        function startFallingStickers() {
+            const stickerContainer = document.getElementById('stickerContainer');
+            // Mix of Hearts, Bears, Flowers, and Musical Notes
+            const stickerIcons = ['❤️', '💖', '🧸', '🌸', '🎵', '🎶', '🎻', '🎹', '🎼'];
+            
+            setInterval(() => {
+                const el = document.createElement('div');
+                el.classList.add('sticker');
+                el.innerText = stickerIcons[Math.floor(Math.random() * stickerIcons.length)];
+                
+                // Random positioning and timing
+                el.style.left = Math.random() * 100 + 'vw';
+                const duration = Math.random() * 5 + 3; // 3 to 8 seconds
+                el.style.animationDuration = duration + 's';
+                el.style.fontSize = (Math.random() * 1.5 + 1) + 'rem'; // Random size
+                
+                stickerContainer.appendChild(el);
+
+                // Cleanup
+                setTimeout(() => { el.remove(); }, duration * 1000);
+            }, 400); // New sticker every 400ms
+        }
+
+        // --- TYPEWRITER LOGIC ---
+        const message = `To My Dearest Wifeyy Michi,
+
+Happy Valentine’s Day, My Love.
+
+I have been here thinking deeply on how to put my feelings into words, I realize that no matter how much I write, no words could really express how in love I am with you. I may have already said it a hundred times, but I want to let you know today and every day that I would never ever leave you. This might be the only way I can show my love for now, but I hope to spend the rest of my months and years showing you exactly what you mean to me.
+
+Please, show me all of your flaws. Be comfortable with me and tell me things freely. I want you to know that in the end, you will always be the one I will choose. I want us to always fix things between us when they get difficult because that's what love really is.. not always equal, not always balanced, but always willing to stay.
+
+And honestly, I couldn't stand even a day without talking to you. Even just a few messages from you makes my entire day. I want you to always be happy, and if you ever slipped away from my arms, I wouldn’t be able to forgive myself. I may not always be able to solve your problems, but I need you to know that I am always here for you, standing by your side.
+
+You know, I always told myself that I wasn't meant for anything long-distance. I didn’t think I had it in me. But with you... yet, here I am, falling in love with your soul every single day. It’s actually quite weird for me to admit, because I am not a religious person at all and I don't usually pray about things, but I find myself talking to God about you. I pray for your safety constantly. I pray for Him to soothe the pain in your heart and slowly, hopefully, take your problems away little by little.
+
+I know things aren't that good in your direction right now, yet I admire how strong you are despite everything you're facing. But please, let your tears flow freely. If you want to cry, please do let it out and don't hide it in. Don't ever be embarrassed to share your problems or talk things out with me, I am so willing to listen to it all.
+
+I’ll admit, at the start, I was scared. I almost gave up because I heard from friends that you only saw me as a friend, or that you weren't into this. Usually, I would have just walked away to protect myself. But something was different with you. But that time? when you noticed I was acting differently; I decided to take one more risk and confess. What I thought was just a "happy crush" months ago turned into the most serious love I have ever felt. I don't fall in love easily, but with you, I couldn't help it.
+
+I’m very cautious with how people always ask me if what are we really.. because I’ve assumed things a lot in the past from my previous, so this time, I want to ask you properly. I originally wanted to wait until the time we finally meet, but since it’s Valentine’s Day, it feels like the right opportunity to be brave. You remember when I said I want things to develop slowly between us? I still mean that. I don't want us to rush, and I want you to be able to focus. I don't need to be your first priority. I want you to focus on your relationship with God, your family, and your school first—I am perfectly happy being your fourth priority, as long as I get to be by your side.
+
+But even so, I want to ask you again, properly:
+Michi, Will you be mine? Will you be my girlfriend? Will you be my Wife?
+
+You’re mine, and I will always be yours. You may not be the first person I have loved, but you are the first person I have loved this deeply and sincerely. You’re the only one I love this much. If you ever slipped away, I don’t know if I could ever love another the same way I’m in love with you. I may not be the best partner, but I want to be the best person you’ve ever had.
+
+I am planning to come out to my family soon. Even though I’ve been hiding it, I feel like they have their speculations towards my sexuality, but it doesn’t matter to me. Whatever their response may be, my eyes will never leave yours.
+
+Paninindigan kita Michi.
+I love you so much, Wifeyy. Happy Valentine’s Day!
+
+Always yours,
+Hubby Sevyyy`;
+
+        const typeEl = document.getElementById('typewriter');
+        let typeIndex = 0;
+
+        function startTypewriter() {
+            if (typeIndex < message.length) {
+                // Handle newlines explicitly for safer rendering
+                const char = message.charAt(typeIndex);
+                typeEl.textContent += char; 
+                typeIndex++;
+                
+                // Auto scroll to bottom as we type
+                scrollContainer.scrollTop = scrollContainer.scrollHeight;
+
+                // Speed up typing for long text (20ms instead of 40)
+                setTimeout(startTypewriter, 20); 
+            }
+        }
+    </script>
+</body>
+</html>
